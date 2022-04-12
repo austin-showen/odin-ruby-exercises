@@ -15,5 +15,3 @@ puts substrings("below", dictionary)
 
 puts substrings("Howdy partner, sit down! How's it going?", dictionary)
 # Expected output: { "down" => 1, "go" => 1, "going" => 1, "how" => 2, "howdy" => 1, "it" => 2, "i" => 3, "own" => 1, "part" => 1, "partner" => 1, "sit" => 1 }
-
-# To do: correct logic to count multiple occurrences of substrings
