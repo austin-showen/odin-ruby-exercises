@@ -1,8 +1,11 @@
 class Game
-  def initialize
+  def initialize(player1, player2)
+    @player1 = player1
+    @player2 = player2
     @board = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     draw_board
     @moves = 0
+    coin_flip
   end
 
   def draw_board
@@ -15,17 +18,35 @@ class Game
           @rows[0], @rows[4], @rows[0]]
   end
 
-  def play_round(player, space)
+  def coin_flip
+    @current_player = rand(2) == 1 ? @player1 : @player2
+    puts "Player #{@current_player.order} wins the coin flip!"
+    move(@current_player)
+  end
+
+  def move(player)
+    puts "Player #{player.order}, where will you place your #{player.token}?"
+    space = gets.chomp.to_i until (1..9).include?(space)
     cell(space)
-    if @board[@cell_x][@cell_y].instance_of?(Integer)
-      @board[@cell_x][@cell_y] = player
+    unless @board[@cell_x][@cell_y].instance_of?(Integer)
+      puts "That spot is already taken!"
+      move(player)
     else
-      puts 'Invalid move!'
-      return
+      play_round(player, space)
     end
+  end
+
+  def play_round(player, space)
+    @board[@cell_x][@cell_y] = player.token
     draw_board
     @moves += 1
     check_winner(player)
+    switch_player
+    move(@current_player)
+  end
+
+  def switch_player
+    @current_player = @current_player == @player1 ? @player2 : @player1
   end
 
   def cell(space)
@@ -36,8 +57,8 @@ class Game
 
   def check_winner(player)
     lines
-    if @lines.include?([player, player, player])
-      puts "Three in a row! #{player} wins!"
+    if @lines.include?([player.token, player.token, player.token])
+      puts "Three in a row! Player #{player.order} wins!"
     elsif @moves == 9
       puts "Uh-oh! Cat's game!"
     end
@@ -49,13 +70,27 @@ class Game
   end
 end
 
-game = Game.new
-game.play_round("X", 4)
-game.play_round("O", 5)
-game.play_round("X", 1)
-game.play_round("O", 7)
-game.play_round("X", 3)
-game.play_round("O", 2)
-game.play_round("X", 8)
-game.play_round("O", 9)
-game.play_round("X", 9)
+class Player
+  attr_reader :score, :order
+  attr_accessor :token
+
+  def initialize(token, order)
+    @order = order
+    @token = token
+    @score = 0
+  end
+
+  def add_point
+    @score += 1
+  end
+end
+
+puts 'Player 1, do you choose X or O?'
+player1_choice = gets.chomp.upcase until %w[X O].include?(player1_choice)
+player2_choice = player1_choice == 'O' ? 'X' : 'O'
+puts "Player 1 is #{player1_choice}. Player 2 is #{player2_choice}."
+
+player1 = Player.new(player1_choice, 1)
+player2 = Player.new(player2_choice, 2)
+
+game = Game.new(player1, player2)
