@@ -28,15 +28,15 @@ class Game
     puts "Player #{player.order}, where will you place your #{player.token}?"
     space = gets.chomp.to_i until (1..9).include?(space)
     cell(space)
-    unless @board[@cell_x][@cell_y].instance_of?(Integer)
-      puts "That spot is already taken!"
-      move(player)
+    if @board[@cell_x][@cell_y].instance_of?(Integer)
+      play_round(player)
     else
-      play_round(player, space)
+      puts 'That spot is already taken!'
+      move(player)
     end
   end
 
-  def play_round(player, space)
+  def play_round(player)
     @board[@cell_x][@cell_y] = player.token
     draw_board
     @moves += 1
@@ -93,4 +93,4 @@ puts "Player 1 is #{player1_choice}. Player 2 is #{player2_choice}."
 player1 = Player.new(player1_choice, 1)
 player2 = Player.new(player2_choice, 2)
 
-game = Game.new(player1, player2)
+Game.new(player1, player2)
