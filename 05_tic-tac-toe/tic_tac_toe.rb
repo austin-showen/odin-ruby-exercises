@@ -1,5 +1,4 @@
 class Game
-
   def initialize
     @board = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     draw_board
@@ -16,14 +15,23 @@ class Game
           @rows[0], @rows[4], @rows[0]]
   end
 
-  def play_round(player, space)  # To do: check that move is valid
-    @cell = space - 1
-    @cell_x = (@cell / 3).floor
-    @cell_y = @cell % 3
-    @board[@cell_x][@cell_y] = player
+  def play_round(player, space)
+    cell(space)
+    if @board[@cell_x][@cell_y].instance_of?(Integer)
+      @board[@cell_x][@cell_y] = player
+    else
+      puts 'Invalid move!'
+      return
+    end
     draw_board
     @moves += 1
     check_winner(player)
+  end
+
+  def cell(space)
+    @cell = space - 1
+    @cell_x = (@cell / 3).floor
+    @cell_y = @cell % 3
   end
 
   def check_winner(player)
@@ -50,4 +58,4 @@ game.play_round("X", 3)
 game.play_round("O", 2)
 game.play_round("X", 8)
 game.play_round("O", 9)
-game.play_round("X", 6)
+game.play_round("X", 9)
