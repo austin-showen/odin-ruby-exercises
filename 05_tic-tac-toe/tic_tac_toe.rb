@@ -3,8 +3,8 @@ class Game
     @player1 = player1
     @player2 = player2
     @board = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    draw_board
     @moves = 0
+    draw_board
     coin_flip
   end
 
@@ -15,38 +15,39 @@ class Game
              "  #{@board[2][0]}  |  #{@board[2][1]}  |  #{@board[2][2]}  "]
     puts [@rows[0], @rows[2], @rows[0], @rows[1],
           @rows[0], @rows[3], @rows[0], @rows[1],
-          @rows[0], @rows[4], @rows[0]]
+          @rows[0], @rows[4], @rows[0], '']
   end
 
   def coin_flip
     @current_player = rand(2) == 1 ? @player1 : @player2
+    @other_player = @current_player == @player1 ? @player2 : @player1
     puts "Player #{@current_player.order} wins the coin flip!"
-    move(@current_player)
+    move
   end
 
-  def move(player)
-    puts "Player #{player.order}, where will you place your #{player.token}?"
+  def move
+    puts "Player #{@current_player.order}, where will you place your #{@current_player.token}?"
     space = gets.chomp.to_i until (1..9).include?(space)
     cell(space)
     if @board[@cell_x][@cell_y].instance_of?(Integer)
-      play_round(player)
+      play_round
     else
       puts 'That spot is already taken!'
-      move(player)
+      move
     end
   end
 
-  def play_round(player)
-    @board[@cell_x][@cell_y] = player.token
+  def play_round
+    @board[@cell_x][@cell_y] = @current_player.token
     draw_board
     @moves += 1
-    check_winner(player)
+    check_winner
     switch_player
-    move(@current_player)
+    move
   end
 
   def switch_player
-    @current_player = @current_player == @player1 ? @player2 : @player1
+    @current_player, @other_player = @other_player, @current_player
   end
 
   def cell(space)
@@ -55,12 +56,27 @@ class Game
     @cell_y = @cell % 3
   end
 
-  def check_winner(player)
+  def check_winner
     lines
-    if @lines.include?([player.token, player.token, player.token])
-      puts "Three in a row! Player #{player.order} wins!"
+    if @lines.include?(Array.new(3, @current_player.token))
+      puts "Three in a row! Player #{@current_player.order} wins!"
+      @current_player.add_point
+      play_again
     elsif @moves == 9
       puts "Uh-oh! Cat's game!"
+      play_again
+    end
+  end
+
+  def play_again
+    puts 'Current scores:'
+    puts "Player 1: #{@player1.score}     Player 2: #{@player2.score}"
+    puts 'Play again? (Y/N)'
+    response = gets.chomp.upcase until %w[Y N].include? response
+    if response == 'Y'
+      Game.new(@player1, @player2)
+    else
+      exit
     end
   end
 
