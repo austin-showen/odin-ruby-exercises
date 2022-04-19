@@ -1,3 +1,4 @@
+# Takes two Player objects and runs an interactive game of tic-tac-toe
 class Game
   def initialize(player1, player2)
     @player1 = player1
@@ -81,14 +82,14 @@ class Game
   end
 
   def lines
-    @diagonals = [[@board[0][0], @board[1][1], @board[2][2]], [@board[0][2], @board[1][1], @board[2][0]]]
-    @lines = @board + @board.transpose + @diagonals
+    diagonals = [[@board[0][0], @board[1][1], @board[2][2]], [@board[0][2], @board[1][1], @board[2][0]]]
+    @lines = @board + @board.transpose + diagonals
   end
 end
 
+# Stores each player's score, order (1 or 2), and token (X or O)
 class Player
-  attr_reader :score, :order
-  attr_accessor :token
+  attr_reader :score, :order, :token
 
   def initialize(token, order)
     @order = order
