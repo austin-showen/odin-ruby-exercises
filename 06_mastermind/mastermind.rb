@@ -7,26 +7,41 @@ class Game
     @colors = colors
     @code_length = code_length
     @max_turns = 12
+    @score = {}
     play
   end
 
   def play
     @code = @codemaker.generate_code
     @max_turns.times do
-      @guess = @codebreaker.guess(@guesses)
+      @guess = @codebreaker.guess(@guesses, @score)
       @score = @codemaker.evaluate_guess(@guess)
-      report_score if @codebreaker.instance_of?(PlayerCodebreaker)
+      @guesses += 1
+      score_player if @codebreaker.instance_of?(PlayerCodebreaker)
+      score_computer if @codebreaker.instance_of?(ComputerCodebreaker)
     end
   end
 
-  def report_score
+  def score_player
     if @score[:exact] == @code_length
       puts "Congratulations! #{@guess} is the correct code!"
       exit
     end
     puts "#{@guess}: #{@score[:exact]} exact matches, #{@score[:inexact]} inexact matches.\n\n"
-    @guesses += 1
-    puts "Sorry! You're out of guesses." if @guesses > @max_turns
+    return unless @guesses > @max_turns
+
+    puts "Sorry! You're out of guesses."
+    exit
+  end
+
+  def score_computer
+    if @score[:exact] == @code_length
+      puts 'The computer cracked the code! Better luck next time!'
+      exit
+    elsif @guesses > @max_turns
+      puts "Wow! You beat the computer! Are you sure you didn't cheat?"
+      exit
+    end
   end
 end
 
@@ -90,16 +105,55 @@ class ComputerCodebreaker
     @possible_guesses = possible_guesses
   end
 
-  def guess(_guesses)
-    @possible_guesses.pop
+  def guess(guesses, score)
+    @score = score
+    @possible_guesses = reduce_guesses if guesses > 1
+    @prev_guess = @possible_guesses.sample
+    @prev_guess
   end
 
   def possible_guesses
-    @num_guesses = @colors.length**@code_length
     @possible_guesses = []
-    @colors.repeated_permutation(4) { |permutation| @possible_guesses.push(permutation) }
+    @colors.repeated_permutation(@code_length) { |permutation| @possible_guesses.push(permutation) }
     @possible_guesses.map!(&:join)
     @possible_guesses
+  end
+
+  def reduce_guesses
+    @new_guesses = []
+    @possible_guesses.each do |guess|
+      @temp_prev = @prev_guess.clone
+      @temp_guess = guess.clone
+      @new_guesses.push(guess) if exact_matches == @score[:exact] && inexact_matches == @score[:inexact]
+    end
+    return @new_guesses unless @new_guesses.empty?
+
+    puts "The computer doesn't take kindly to cheaters!"
+    exit
+  end
+
+  def exact_matches
+    matches = 0
+    @temp_prev.each_char.with_index do |char, i|
+      if char == @temp_guess[i]
+        matches += 1
+        @temp_guess[i] = 'Z'
+        @temp_prev[i] = 'X'
+      end
+    end
+    matches
+  end
+
+  def inexact_matches
+    matches = 0
+    @temp_prev.each_char.with_index do |char, i|
+      if @temp_guess.include? char
+        matches += 1
+        @temp_guess.sub!(char, 'Z')
+        @temp_prev[i] = 'X'
+      end
+    end
+    matches
   end
 end
 
@@ -123,7 +177,8 @@ class PlayerCodemaker
   end
 
   def evaluate_guess(guess)
-    puts "Computer guess ##{guesses}: #{guess}."
+    puts "Computer guess ##{@guesses}: #{guess}."
+    @guesses += 1
     puts 'How many exact matches are there? (Right color, right position.)'
     exact = gets.chomp.to_i until exact.instance_of?(Integer) && (0..@code_length).include?(exact)
     puts 'How many inexact matches are there? (Right color, wrong position.)'
@@ -146,14 +201,15 @@ class PlayerCodebreaker
   def initialize(colors, code_length)
     @colors = colors
     @code_length = code_length
+    @max_turns = 12
   end
 
-  def guess(guesses)
+  def guess(guesses, _score)
     if guesses == 1
       puts 'Please enter your guess as a series of four letters, such as RUBY. Repeating letters are allowed.'
       puts 'The colors are (R)ose, (U)mber, (B)eige, (Y)am, (C)hartreuse, and (H)oneydew.'
     end
-    print "Guess ##{guesses} out of 12: "
+    print "Guess ##{guesses} out of #{@max_turns}: "
     guess = gets.chomp.upcase
     until valid?(guess)
       puts 'Invalid guess! Try again.'
