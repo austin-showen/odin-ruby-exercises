@@ -1,3 +1,4 @@
+# Main controller class that runs a player versus computer game of Mastermind
 class Game
   def initialize(codemaker, codebreaker, colors, code_length)
     @codemaker = codemaker
@@ -29,6 +30,7 @@ class Game
   end
 end
 
+# Generates a random code and evaluates the player's guesses
 class ComputerCodemaker
   def initialize(colors, code_length)
     @colors = colors
@@ -80,9 +82,11 @@ class ComputerCodemaker
   end
 end
 
+# Accepts guesses from the computer
 class ComputerCodebreaker
 end
 
+# Accepts a code from the player's input and allows the player to evaluate the computer's guesses
 class PlayerCodemaker
   def initialize(colors, code_length)
     @colors = colors
@@ -103,10 +107,10 @@ class PlayerCodemaker
   def evaluate_guess(guess)
     puts "The computer guessed #{guess}."
     puts 'How many exact matches are there? (Right color, right position.)'
-    @exact = gets until @exact.instance_of?(Integer) && (0..@code_length).include?(@exact)
+    exact = gets.chomp.to_i until exact.instance_of?(Integer) && (0..@code_length).include?(exact)
     puts 'How many inexact matches are there? (Right color, wrong position.)'
-    @inexact = gets until @inexact.instance_of?(Integer) && (0..@code_length).include?(@inexact)
-    { exact: @exact, inexact: @inexact }
+    inexact = gets.chomp.to_i until inexact.instance_of?(Integer) && (0..@code_length).include?(inexact)
+    { exact: exact, inexact: inexact }
   end
 
   private
@@ -119,6 +123,7 @@ class PlayerCodemaker
   end
 end
 
+# Accepts guesses from the player
 class PlayerCodebreaker
   def initialize(colors, code_length)
     @colors = colors
@@ -151,7 +156,7 @@ end
 
 colors = %w[R U B Y C H]
 code_length = 4
-
-codemaker = ComputerCodemaker.new(colors, code_length)
+codemaker = PlayerCodemaker.new(colors, code_length)
+#codemaker = ComputerCodemaker.new(colors, code_length)
 codebreaker = PlayerCodebreaker.new(colors, code_length)
 Game.new(codemaker, codebreaker, colors, code_length)
