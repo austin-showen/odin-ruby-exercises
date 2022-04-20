@@ -77,13 +77,32 @@ class ComputerCodebreaker
 end
 
 class PlayerCodemaker
-  def initialize
+  def initialize(colors, code_length)
+    @colors = colors
+    @code_length = code_length
   end
 
   def generate_code
+    puts 'Please enter a four-character code for the computer to guess. Each character represents a color.'
+    puts 'The colors are (R)ose, (U)mber, (B)eige, (Y)am, (C)hartreuse, and (H)oneydew.'
+    code = gets.chomp.upcase
+    until valid?(code)
+      puts 'Invalid code! Enter your code as a series of four letters, such as RUBY. Repeating letters are allowed.'
+      code = gets.chomp.upcase
+    end
+    code
   end
 
   def evaluate_guess
+  end
+
+  private
+
+  def valid?(code)
+    return false unless code.length == @code_length
+
+    code.each_char { |char| return false unless @colors.include?(char) }
+    true
   end
 end
 
