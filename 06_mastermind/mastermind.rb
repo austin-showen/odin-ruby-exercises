@@ -84,6 +84,23 @@ end
 
 # Accepts guesses from the computer
 class ComputerCodebreaker
+  def initialize(colors, code_length)
+    @colors = colors
+    @code_length = code_length
+    @possible_guesses = possible_guesses
+  end
+
+  def guess(_guesses)
+    @possible_guesses.pop
+  end
+
+  def possible_guesses
+    @num_guesses = @colors.length**@code_length
+    @possible_guesses = []
+    @colors.repeated_permutation(4) { |permutation| @possible_guesses.push(permutation) }
+    @possible_guesses.map!(&:join)
+    @possible_guesses
+  end
 end
 
 # Accepts a code from the player's input and allows the player to evaluate the computer's guesses
@@ -91,6 +108,7 @@ class PlayerCodemaker
   def initialize(colors, code_length)
     @colors = colors
     @code_length = code_length
+    @guesses = 1
   end
 
   def generate_code
@@ -105,7 +123,7 @@ class PlayerCodemaker
   end
 
   def evaluate_guess(guess)
-    puts "The computer guessed #{guess}."
+    puts "Computer guess ##{guesses}: #{guess}."
     puts 'How many exact matches are there? (Right color, right position.)'
     exact = gets.chomp.to_i until exact.instance_of?(Integer) && (0..@code_length).include?(exact)
     puts 'How many inexact matches are there? (Right color, wrong position.)'
@@ -158,5 +176,6 @@ colors = %w[R U B Y C H]
 code_length = 4
 codemaker = PlayerCodemaker.new(colors, code_length)
 #codemaker = ComputerCodemaker.new(colors, code_length)
-codebreaker = PlayerCodebreaker.new(colors, code_length)
+codebreaker = ComputerCodebreaker.new(colors, code_length)
+#codebreaker = PlayerCodebreaker.new(colors, code_length)
 Game.new(codemaker, codebreaker, colors, code_length)
