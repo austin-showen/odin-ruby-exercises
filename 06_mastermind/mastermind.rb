@@ -14,10 +14,18 @@ class Game
     @max_turns.times do
       @guess = @codebreaker.guess(@guesses)
       @score = @codemaker.evaluate_guess(@guess)
-      p @score
-      @guesses += 1
-      break if @score[:exact] == @code_length
+      report_score if @codebreaker.instance_of?(PlayerCodebreaker)
     end
+  end
+
+  def report_score
+    if @score[:exact] == @code_length
+      puts "Congratulations! #{@guess} is the correct code!"
+      exit
+    end
+    puts "#{@guess}: #{@score[:exact]} exact matches, #{@score[:inexact]} inexact matches.\n\n"
+    @guesses += 1
+    puts "Sorry! You're out of guesses." if @guesses > @max_turns
   end
 end
 
@@ -32,15 +40,14 @@ class ComputerCodemaker
     @code_length.times do
       @code += @colors[rand(@colors.length)]
     end
-    puts "Code: #{@code}"
     @code
   end
 
   def evaluate_guess(guess)
     return { exact: @code_length, inexact: 0 } if guess == @code
 
-    @guess = guess
-    @temp_code = String.new(@code)
+    @temp_guess = guess.clone
+    @temp_code = @code.clone
     exact = exact_matches
     inexact = inexact_matches
     { exact: exact, inexact: inexact }
@@ -51,9 +58,9 @@ class ComputerCodemaker
   def exact_matches
     matches = 0
     @temp_code.each_char.with_index do |char, i|
-      if char == @guess[i]
+      if char == @temp_guess[i]
         matches += 1
-        @guess[i] = 'Z'
+        @temp_guess[i] = 'Z'
         @temp_code[i] = 'X'
       end
     end
@@ -63,9 +70,9 @@ class ComputerCodemaker
   def inexact_matches
     matches = 0
     @temp_code.each_char.with_index do |char, i|
-      if @guess.include? char
+      if @temp_guess.include? char
         matches += 1
-        @guess.sub!(char, 'Z')
+        @temp_guess.sub!(char, 'Z')
         @temp_code[i] = 'X'
       end
     end
@@ -93,7 +100,13 @@ class PlayerCodemaker
     code
   end
 
-  def evaluate_guess
+  def evaluate_guess(guess)
+    puts "The computer guessed #{guess}."
+    puts 'How many exact matches are there? (Right color, right position.)'
+    @exact = gets until @exact.instance_of?(Integer) && (0..@code_length).include?(@exact)
+    puts 'How many inexact matches are there? (Right color, wrong position.)'
+    @inexact = gets until @inexact.instance_of?(Integer) && (0..@code_length).include?(@inexact)
+    { exact: @exact, inexact: @inexact }
   end
 
   private
@@ -113,9 +126,11 @@ class PlayerCodebreaker
   end
 
   def guess(guesses)
-    puts "Guess ##{guesses} out of 12"
-    puts 'Please enter your guess as a series of four letters, such as RUBY. Repeating letters are allowed.'
-    puts 'The colors are (R)ose, (U)mber, (B)eige, (Y)am, (C)hartreuse, and (H)oneydew.'
+    if guesses == 1
+      puts 'Please enter your guess as a series of four letters, such as RUBY. Repeating letters are allowed.'
+      puts 'The colors are (R)ose, (U)mber, (B)eige, (Y)am, (C)hartreuse, and (H)oneydew.'
+    end
+    print "Guess ##{guesses} out of 12: "
     guess = gets.chomp.upcase
     until valid?(guess)
       puts 'Invalid guess! Try again.'
