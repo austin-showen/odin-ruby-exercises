@@ -11,7 +11,7 @@ class Game
   def play
     @code = @codemaker.generate_code(@code_length, @colors)
     @guess = @codebreaker.guess(@guesses)
-    @codemaker.evaluate_guess(@guess)
+    @score = @codemaker.evaluate_guess(@code, @guess)
     @guesses += 1
   end
 
@@ -22,14 +22,31 @@ class ComputerCodemaker
   end
 
   def generate_code(code_length, colors)
-    @code = []
+    @code = ""
     code_length.times do
-      @code.push(colors[rand(6)])
+      @code += colors[rand(6)]
     end
+    puts "Code: $#{@code}"
+    @code
   end
 
-  def evaluate_guess(guess)
-    
+  def evaluate_guess(code, guess)
+    @exact = 0
+    @inexact = 0
+    for i in (0..3) do
+      if code[i] == guess[i]
+        @exact += 1
+        code[i], guess[i] = 'X', 'Z'
+      end
+    end
+    for i in (0..3) do
+      if guess.include? code[i]
+        @inexact += 1
+        guess.sub!(code[i], 'Z')
+        code[i] = 'X'
+      end
+    end
+    {exact: @exact, inexact: @inexact}
   end
 end
 
