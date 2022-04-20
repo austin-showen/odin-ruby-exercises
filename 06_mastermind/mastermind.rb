@@ -29,38 +29,42 @@ class ComputerCodemaker
     code_length.times do
       @code += colors[rand(6)]
     end
-    puts "Code: $#{@code}"
+    puts "Code: #{@code}"
     @code
   end
 
   def evaluate_guess(guess)
+    return { exact: 4, inexact: 0 } if guess == @code
+
     @guess = guess
     @temp_code = String.new(@code)
-    @exact = 0
-    @inexact = 0
-    exact_matches
-    inexact_matches
-    { exact: @exact, inexact: @inexact }
+    exact = exact_matches
+    inexact = inexact_matches
+    { exact: exact, inexact: inexact }
   end
 
   def exact_matches
+    matches = 0
     @temp_code.each_char.with_index do |char, i|
       if char == @guess[i]
-        @exact += 1
+        matches += 1
         @guess[i] = 'Z'
         @temp_code[i] = 'X'
       end
     end
+    matches
   end
 
   def inexact_matches
+    matches = 0
     @temp_code.each_char.with_index do |char, i|
       if @guess.include? char
-        @inexact += 1
+        matches += 1
         @guess.sub!(char, 'Z')
         @temp_code[i] = 'X'
       end
     end
+    matches
   end
 end
 
