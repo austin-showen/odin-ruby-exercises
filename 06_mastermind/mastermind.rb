@@ -10,18 +10,19 @@ class Game
 
   def play
     @code = @codemaker.generate_code(@code_length, @colors)
-    @guess = @codebreaker.guess(@guesses)
-    @score = @codemaker.evaluate_guess(@guess)
-    p @score
-    @guesses += 1
+    12.times do
+      @guess = @codebreaker.guess(@guesses)
+      @score = @codemaker.evaluate_guess(@guess)
+      p @score
+      @guesses += 1
+      break if @score[:exact] == 4
+    end
   end
 end
 
 class ComputerCodemaker
   def initialize
     @code = ''
-    @exact = 0
-    @inexact = 0
   end
 
   def generate_code(code_length, colors)
@@ -34,27 +35,30 @@ class ComputerCodemaker
 
   def evaluate_guess(guess)
     @guess = guess
+    @temp_code = String.new(@code)
+    @exact = 0
+    @inexact = 0
     exact_matches
     inexact_matches
     { exact: @exact, inexact: @inexact }
   end
 
   def exact_matches
-    @code.each_char.with_index do |char, i|
+    @temp_code.each_char.with_index do |char, i|
       if char == @guess[i]
         @exact += 1
         @guess[i] = 'Z'
-        @code[i] = 'X'
+        @temp_code[i] = 'X'
       end
     end
   end
 
   def inexact_matches
-    @code.each_char.with_index do |char, i|
+    @temp_code.each_char.with_index do |char, i|
       if @guess.include? char
         @inexact += 1
         @guess.sub!(char, 'Z')
-        @code[i] = 'X'
+        @temp_code[i] = 'X'
       end
     end
   end
