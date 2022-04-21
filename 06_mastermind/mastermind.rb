@@ -1,14 +1,25 @@
 # Main controller class that runs a player versus computer game of Mastermind
 class Game
-  def initialize(codemaker, codebreaker, colors, code_length)
-    @codemaker = codemaker
-    @codebreaker = codebreaker
-    @guesses = 1
+  def initialize(colors, code_length, max_turns)
+    @max_turns = max_turns
     @colors = colors
     @code_length = code_length
-    @max_turns = 12
     @score = {}
+    @guesses = 1
+    player_choice
     play
+  end
+
+  def player_choice
+    puts 'Would you like to be the codemaker or the codebreaker?'
+    choice = gets.chomp.upcase until %w[CODEMAKER CODEBREAKER].include? choice
+    if choice == 'CODEMAKER'
+      @codemaker = PlayerCodemaker.new(@colors, @code_length)
+      @codebreaker = ComputerCodebreaker.new(@colors, @code_length)
+    else
+      @codemaker = ComputerCodemaker.new(@colors, @code_length)
+      @codebreaker = PlayerCodebreaker.new(@colors, @code_length)
+    end
   end
 
   def play
@@ -205,10 +216,7 @@ class PlayerCodebreaker
   end
 
   def guess(guesses, _score)
-    if guesses == 1
-      puts 'Please enter your guess as a series of four letters, such as RUBY. Repeating letters are allowed.'
-      puts 'The colors are (R)ose, (U)mber, (B)eige, (Y)am, (C)hartreuse, and (H)oneydew.'
-    end
+    instructions if guesses == 1
     print "Guess ##{guesses} out of #{@max_turns}: "
     guess = gets.chomp.upcase
     until valid?(guess)
@@ -220,6 +228,11 @@ class PlayerCodebreaker
 
   private
 
+  def instructions
+    puts 'Please enter your guess as a series of four letters, such as RUBY. Repeating letters are allowed.'
+    puts 'The colors are (R)ose, (U)mber, (B)eige, (Y)am, (C)hartreuse, and (H)oneydew.'
+  end
+
   def valid?(guess)
     return false unless guess.length == @code_length
 
@@ -230,8 +243,6 @@ end
 
 colors = %w[R U B Y C H]
 code_length = 4
-codemaker = PlayerCodemaker.new(colors, code_length)
-#codemaker = ComputerCodemaker.new(colors, code_length)
-codebreaker = ComputerCodebreaker.new(colors, code_length)
-#codebreaker = PlayerCodebreaker.new(colors, code_length)
-Game.new(codemaker, codebreaker, colors, code_length)
+max_turns = 12
+
+Game.new(colors, code_length, max_turns)
