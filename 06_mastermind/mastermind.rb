@@ -1,3 +1,30 @@
+# Checks for exact and inexact matches between two codes
+module Matches
+  def exact_matches(code1, code2)
+    matches = 0
+    code1.each_char.with_index do |char, i|
+      if char == code2[i]
+        matches += 1
+        code2[i] = 'Z'
+        code1[i] = 'X'
+      end
+    end
+    matches
+  end
+
+  def inexact_matches(code1, code2)
+    matches = 0
+    code1.each_char.with_index do |char, i|
+      if code2.include? char
+        matches += 1
+        code2.sub!(char, 'Z')
+        code1[i] = 'X'
+      end
+    end
+    matches
+  end
+end
+
 # Main controller class that runs a player versus computer game of Mastermind
 class Game
   def initialize(colors, code_length, max_turns)
@@ -58,6 +85,8 @@ end
 
 # Generates a random code and evaluates the player's guesses
 class ComputerCodemaker
+  include Matches
+
   def initialize(colors, code_length)
     @colors = colors
     @code_length = code_length
@@ -76,40 +105,16 @@ class ComputerCodemaker
 
     @temp_guess = guess.clone
     @temp_code = @code.clone
-    exact = exact_matches
-    inexact = inexact_matches
+    exact = exact_matches(@temp_guess, @temp_code)
+    inexact = inexact_matches(@temp_guess, @temp_code)
     { exact: exact, inexact: inexact }
-  end
-
-  private
-
-  def exact_matches
-    matches = 0
-    @temp_code.each_char.with_index do |char, i|
-      if char == @temp_guess[i]
-        matches += 1
-        @temp_guess[i] = 'Z'
-        @temp_code[i] = 'X'
-      end
-    end
-    matches
-  end
-
-  def inexact_matches
-    matches = 0
-    @temp_code.each_char.with_index do |char, i|
-      if @temp_guess.include? char
-        matches += 1
-        @temp_guess.sub!(char, 'Z')
-        @temp_code[i] = 'X'
-      end
-    end
-    matches
   end
 end
 
 # Accepts guesses from the computer
 class ComputerCodebreaker
+  include Matches
+
   def initialize(colors, code_length)
     @colors = colors
     @code_length = code_length
@@ -135,36 +140,13 @@ class ComputerCodebreaker
     @possible_guesses.each do |guess|
       @temp_prev = @prev_guess.clone
       @temp_guess = guess.clone
-      @new_guesses.push(guess) if exact_matches == @score[:exact] && inexact_matches == @score[:inexact]
+      @new_guesses.push(guess) if exact_matches(@temp_prev, @temp_guess) == @score[:exact] &&
+                                  inexact_matches(@temp_prev, @temp_guess) == @score[:inexact]
     end
     return @new_guesses unless @new_guesses.empty?
 
     puts "The computer doesn't take kindly to cheaters!"
     exit
-  end
-
-  def exact_matches
-    matches = 0
-    @temp_prev.each_char.with_index do |char, i|
-      if char == @temp_guess[i]
-        matches += 1
-        @temp_guess[i] = 'Z'
-        @temp_prev[i] = 'X'
-      end
-    end
-    matches
-  end
-
-  def inexact_matches
-    matches = 0
-    @temp_prev.each_char.with_index do |char, i|
-      if @temp_guess.include? char
-        matches += 1
-        @temp_guess.sub!(char, 'Z')
-        @temp_prev[i] = 'X'
-      end
-    end
-    matches
   end
 end
 
