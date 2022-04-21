@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Checks for exact and inexact matches between two codes
 module Matches
   def exact_matches(code1, code2)
