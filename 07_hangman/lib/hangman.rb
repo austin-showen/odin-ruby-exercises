@@ -4,10 +4,22 @@ class Game
     clean_dictionary
     @word = @dictionary[rand(@dictionary.length)].upcase
     @remaining_guesses = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    @remaining_turns = 9
     @blanks = '_' * @word.length
     get_indices(@word)
+    @victory = false
+    @defeat = false
+    @correct_letters = 0
+    play_round until @victory == true || @defeat == true
+  end
+
+  def play_round
+    puts @blanks
+    puts "#{@word.length} letters. #{@remaining_turns} mistakes remaining."
     player_guess
     process_guess
+    @victory = true if @blanks == @word
+    @defeat = true if @remaining_turns.zero?
   end
 
   def clean_dictionary
@@ -30,7 +42,14 @@ class Game
 
   def process_guess
     @remaining_guesses.delete(@guess)
-    puts 'yay' if @indices.include?(@guess)
+    unless @indices.include?(@guess)
+      @remaining_turns -= 1
+      return
+    end
+    @indices[@guess].each do |index|
+      @blanks[index] = @guess
+      @correct_letters += 1
+    end
   end
 end
 
