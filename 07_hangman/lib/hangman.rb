@@ -60,7 +60,6 @@ class Game
 
   def process_guess
     @remaining_guesses.delete!(@guess)
-    puts @remaining_guesses
     unless @indices.include?(@guess)
       @remaining_turns -= 1
       @incorrect_letters += @guess
