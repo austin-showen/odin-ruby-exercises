@@ -1,38 +1,56 @@
 class Game
   def initialize
-    @dictionary = File.open('dictionary.txt', 'r').readlines
-    clean_dictionary
-    @word = @dictionary[rand(@dictionary.length)].upcase
     @remaining_guesses = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     @remaining_turns = 9
-    @blanks = '_' * @word.length
-    get_indices(@word)
+    @correct_letters = 0
+    @incorrect_letters = ''
     @victory = false
     @defeat = false
-    @correct_letters = 0
-    play_round until @victory == true || @defeat == true
+    load_dictionary
+    load_word
+    first_round
   end
 
-  def play_round
-    puts @blanks
-    puts "#{@word.length} letters. #{@remaining_turns} mistakes remaining."
-    player_guess
-    process_guess
-    @victory = true if @blanks == @word
-    @defeat = true if @remaining_turns.zero?
-  end
-
-  def clean_dictionary
+  def load_dictionary
+    @dictionary = File.open('dictionary.txt', 'r').readlines
     @dictionary.each(&:chomp!)
     @dictionary.select! { |word| word if word.length >= 5 && word.length <= 12 }
   end
 
-  def get_indices(word)
+  def load_word
+    @word = @dictionary[rand(@dictionary.length)].upcase
+    @blanks = '_' * @word.length
     @indices = {}
-    word = word.split('')
+    word = @word.split('')
     word.each_with_index do |char, i|
       @indices.include?(char) ? @indices[char].push(i) : @indices[char] = [i]
     end
+  end
+
+  def first_round
+    puts <<~WELCOME
+      Welcome to Hangman!
+      You have #{@remaining_turns} chances to guess the letters in this #{@word.length}-letter word.
+      You may enter a single letter or guess the entire word. Watch out! If you incorrectly guess the whole word,
+      you will immediately lose!
+      #{@blanks}
+      Enter your first guess:
+    WELCOME
+    player_guess
+    process_guess
+    play_round until @victory == true || @defeat == true
+  end
+
+  def play_round
+    puts <<~PROMPT
+      #{@blanks}
+      #{@correct_letters}/#{@word.length} letters guessed. #{@remaining_turns} mistakes remaining.
+      Incorrect guesses: #{@incorrect_letters}
+    PROMPT
+    player_guess
+    process_guess
+    victory if @blanks == @word
+    defeat if @remaining_turns.zero?
   end
 
   def player_guess
@@ -41,15 +59,27 @@ class Game
   end
 
   def process_guess
-    @remaining_guesses.delete(@guess)
+    @remaining_guesses.delete!(@guess)
+    puts @remaining_guesses
     unless @indices.include?(@guess)
       @remaining_turns -= 1
+      @incorrect_letters += @guess
       return
     end
     @indices[@guess].each do |index|
       @blanks[index] = @guess
       @correct_letters += 1
     end
+  end
+
+  def victory
+    @victory = true
+    puts "You win! The word was #{@word}."
+  end
+
+  def defeat
+    @defeat = true
+    puts "You lose! The word was #{@word}."
   end
 end
 
